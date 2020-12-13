@@ -31,10 +31,12 @@ if ping -q -c5 -w30 8.8.8.8; then
 	echo Internet connectivity: Yes
 	EXTERNAL_IP=$(curl ip.me)
 	echo "External IP: $EXTERNAL_IP"
+	ONLINE="yes"
 else
 	echo Internet connectivity: No
+	ONLINE="no"
 fi
 echo "Recon finished, writing to recon-log.csv ..."
-echo "$DATE,$MAC,$IP,$EXTERNAL_IP" > "$REC_DIR"/net-info.csv
-echo "$DATE,$MAC,$IP,$EXTERNAL_IP" >> ./scan_log.csv
+echo "$DATE,$MAC,$IP,$EXTERNAL_IP,$ONLINE" > "$REC_DIR"/net-info.csv
+echo "$DATE,$MAC,$IP,$EXTERNAL_IP,$ONLINE" >> ./scan_log.csv
 echo "done"
