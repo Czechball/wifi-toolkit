@@ -21,9 +21,9 @@ echo "Creating work directory $REC_DIR..."
 
 mkdir -p "$REC_DIR"
 
-#echo "Starting nmap scan..."
+echo "Starting nmap scan..."
 
-#nmap -T4 -v -F -O --open -oX "$REC_DIR/nmap.xml" "$IP"
+nmap -T4 -v -F -O --open -oX "$REC_DIR/nmap.xml" "$IP"
 
 echo "Checking internet connectivity..."
 
