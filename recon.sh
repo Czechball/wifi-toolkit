@@ -1,4 +1,10 @@
 #!/bin/bash
+
+if [[ $EUID -ne 0 ]]; then
+   echo "You need to run this as root." 
+   exit 1
+fi
+
 DATE=$(date '+%F_%H-%M-%S')
 NMCLI_CONTENT="$(nmcli -t -e no -f active,ssid,bssid dev wifi | grep "yes")"
 SSID="$(echo "$NMCLI_CONTENT" | cut -d ":" -f 2)"
