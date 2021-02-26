@@ -11,6 +11,7 @@ SSID="$(echo "$NMCLI_CONTENT" | cut -d ":" -f 2)"
 MAC="$(echo "$NMCLI_CONTENT" | cut -d ":" -f 3-)"
 SAFE_MAC="$(echo "$MAC" | tr -d :)"
 IP=$(ip route | tail -n1 | cut -d " " -f 1)
+MY_IP=$(hostname -I | awk '{print $1}'
 REC_DIR="scans/scan-$DATE-$SSID-$SAFE_MAC"
 
 echo "Current network info"
@@ -23,7 +24,7 @@ mkdir -p "$REC_DIR"
 
 echo "Starting nmap scan..."
 
-nmap -T4 -v -F -O --open -oX "$REC_DIR/nmap.xml" "$IP"
+nmap -T4 -v -F -O --open -oX "$REC_DIR/nmap.xml" --exclude "$MY_IP"  "$IP"
 
 echo "Checking internet connectivity..."
 
