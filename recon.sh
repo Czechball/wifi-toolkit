@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# Determine environment (Termux)
+
+if uname -a | grep -i Android; then
+	echo "We are on Android"
+	if echo $PREFIX | grep -i termux; then
+		echo "We are in Termux"
+	else
+		echo "We are probably not in Termux"
+fi
+
+exit
+
 if [[ $EUID -ne 0 ]]; then
    echo "You need to run this as root." 
    exit 1
