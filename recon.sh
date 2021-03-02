@@ -8,6 +8,7 @@ if uname -a | grep -i Android; then
 		echo "We are in Termux"
 	else
 		echo "We are probably not in Termux"
+	fi
 fi
 
 exit
