@@ -25,7 +25,7 @@ nmap_android_termux ()
 	echo "Network: $IP"
 	echo "Local IP: $LOCAL_IP"
 
-	nmap -T4 -v -F --open -oX "$1/${SAFE_MAC}_$2.xml" --exclude "$LOCAL_IP" "$IP"
+	nmap -T4 -sV -v -F --open --version-light -oX "$1/${SAFE_MAC}_$2.xml" --exclude "$LOCAL_IP" "$IP"
 }
 
 nmap_android ()
@@ -54,7 +54,7 @@ nmap_linux ()
 
 	echo "Starting nmap scan..."
 
-	nmap -T4 -v -F -O --open -oX "$1/${SAFE_MAC}_$2.xml" --exclude "$LOCAL_IP" "$IP"
+	nmap -T4 -Sv -v -F -O --open --version-light -oX "$1/${SAFE_MAC}_$2.xml" --exclude "$LOCAL_IP" "$IP"
 
 	echo "Checking internet connectivity..."
 
