@@ -54,7 +54,7 @@ nmap_linux ()
 
 	echo "Starting nmap scan..."
 
-	nmap -T4 -v -F -O --open -oX "$1/nmap.xml" --exclude "$LOCAL_IP" "$IP"
+	nmap -T4 -v -F -O --open -oX "$1/${SAFE_MAC}_$2.xml" --exclude "$LOCAL_IP" "$IP"
 
 	echo "Checking internet connectivity..."
 
