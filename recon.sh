@@ -65,7 +65,7 @@ nmap_linux ()
 		ONLINE="yes"
 	else
 		echo Internet connectivity: No
-		ONLINE="no"
+		#ONLINE="no"
 	fi
 }
 
@@ -75,7 +75,7 @@ nmap_linux ()
 
 if uname -a | grep -i Android; then
 	#echo "We are on Android"
-	if echo $PREFIX | grep -i termux; then
+	if echo "$PREFIX" | grep -i termux; then
 		#echo "We are in Termux"
 		nmap_android_termux $REC_DIR $DATE
 	else
