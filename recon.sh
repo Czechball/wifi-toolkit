@@ -2,11 +2,16 @@
 
 # Set basic variables
 DATE=$(date --iso-8601)
-REC_DIR=~/nmap-scans/
+INTERFACE="$1"
+SCRIPTPATH="$( cd "$(dirname "$0")" || { echo -e "\e[91mERROR\e[0m: Script path cannot be found" ; exit 1; } >/dev/null 2>&1 ; pwd -P )"
+REC_DIR="$SCRIPTPATH"
+RED="\e[31m"
+GREEN="\e[32m"
+ENDCOLOR="\e[0m"
 
 # Create scan dir
 
-test -d $REC_DIR || mkdir -p $REC_DIR
+test -d "$REC_DIR" || mkdir -p "$REC_DIR"
 
 # Declare functions
 
@@ -16,57 +21,56 @@ nmap_android_termux ()
 	SSID="$(echo "$TERMUX_WIFI_INFO" | jq '.ssid' -r)"
 	MAC=$(echo "$TERMUX_WIFI_INFO" | jq '.bssid' -r)
 	SAFE_MAC="$(echo "$MAC" | tr -d :)"
-	LOCAL_IP=$(echo "$TERMUX_WIFI_INFO" | jq '.ip' -r)
-	IP=$(ip route | tail -n1 | cut -d " " -f 1)
+	IP=$(echo "$TERMUX_WIFI_INFO" | jq '.ip' -r)
+	LOCAL_IP=$(ip route | tail -n1 | cut -d " " -f 1)
 
-	echo "ESSID: $SSID"
-	echo "BSSID: $MAC"
-	echo "Safe MAC: $SAFE_MAC"
-	echo "Network: $IP"
-	echo "Local IP: $LOCAL_IP"
+	echo "Current network info:"
+	echo -e "ESSID:	${GREEN}$SSID${ENDCOLOR}"
+	echo -e "BSSID:	${GREEN}$MAC${ENDCOLOR}"
+	echo -e "Network:	${GREEN}$IP${ENDCOLOR}"
+	echo -e "Local IP:	${GREEN}$LOCAL_IP${ENDCOLOR}"
 
 	nmap -T4 -sV -v -F --open --version-light -oX "$1/${SAFE_MAC}_$2.xml" --exclude "$LOCAL_IP" "$IP"
 }
 
 nmap_android ()
 {
-	echo "Not yet implemented"
-	exit
+	echo -e "${RED}Not yet implemented${ENDCOLOR}"
+	exit 1
 }
 
 nmap_linux ()
 {
 	if [[ $EUID -ne 0 ]]; then
-		echo "You need to run this as root." 
+		echo -e "${RED}You need to run this as root.${ENDCOLOR}" 
 		exit 1
 	fi
 
-	NMCLI_CONTENT="$(nmcli -t -e no -f active,ssid,bssid dev wifi | grep "yes")"
-	#SSID="$(echo "$NMCLI_CONTENT" | cut -d ":" -f 2)"
-	MAC="$(echo "$NMCLI_CONTENT" | cut -d ":" -f 3-)"
+	SSID="$(iw dev "$INTERFACE" link | awk -F: '/SSID/ {print $NF}' | awk '{ sub(/ /,""); print }')"
+	#MAC="$(iw dev "$INTERFACE" info | grep addr | cut -d " " -f 2)" uh this is wrong
+	MAC="$(iw dev "$INTERFACE" link | head -n 1 | cut -d " " -f 3)"
 	SAFE_MAC="$(echo "$MAC" | tr -d :)"
-	IP=$(ip route | tail -n1 | cut -d " " -f 1)
-	LOCAL_IP=$(hostname -I | awk '{print $1}')
+	IP=$(ip a | grep "$INTERFACE" | grep inet | cut -d " " -f 6)
+	LOCAL_IP=${IP%/*}
 
-	echo "Current network info"
-	#echo "SSID:	$SSID"
-	echo "MAC:	$MAC"
+	echo "Current network info:"
+	echo -e "SSID:		${GREEN}$SSID${ENDCOLOR}"
+	echo -e "MAC:		${GREEN}$MAC${ENDCOLOR}"
+	echo -e "Local IP:	${GREEN}$LOCAL_IP${ENDCOLOR}"
+	echo -e "IP:		${GREEN}$IP${ENDCOLOR}"
+	echo -n "Internet connectivity: "
 
-	echo "Starting nmap scan..."
-
-	nmap -T4 -Sv -v -F -O --open --version-light -oX "$1/${SAFE_MAC}_$2.xml" --exclude "$LOCAL_IP" "$IP"
-
-	echo "Checking internet connectivity..."
-
-	if ping -q -c5 -w30 8.8.8.8; then
-		echo Internet connectivity: Yes
-		EXTERNAL_IP=$(curl ip.me)
-		echo "External IP: $EXTERNAL_IP"
+	if ping -I "$INTERFACE" -q -c5 -w30 8.8.8.8 > /dev/null; then
+		echo -e "${GREEN}Yes${ENDCOLOR}"
+		EXTERNAL_IP=$(curl --interface "$INTERFACE" -s ip.me)
+		echo -e "External IP:	${GREEN}$EXTERNAL_IP${ENDCOLOR}"
 		ONLINE="yes"
 	else
-		echo Internet connectivity: No
+		echo -e "${RED}No${ENDCOLOR}"
 		#ONLINE="no"
 	fi
+
+	nmap -e "$INTERFACE" -T4 -sV -v -F -O --open --version-light -oX "$1/${SAFE_MAC}_$2.xml" --exclude "$LOCAL_IP" "$IP"
 }
 
 # Start
@@ -76,14 +80,19 @@ nmap_linux ()
 if uname -a | grep -i Android; then
 	#echo "We are on Android"
 	if echo "$PREFIX" | grep -i termux; then
-		#echo "We are in Termux"
-		nmap_android_termux $REC_DIR $DATE
+		nmap_android_termux "$REC_DIR" "$DATE"
 	else
-		#echo "We are probably not in Termux"
-		nmap_android $REC_DIR $DATE
+		if [ -z "$INTERFACE" ]; then
+		echo "Error, wireless interface not set. Usage: $0 <interface>"
+		exit 1
+		fi
+		nmap_android "$REC_DIR" "$DATE"
 	fi
 else
-	#echo "We are not on Android"
 	#TODO: Also determine if running in WSL
-	nmap_linux $REC_DIR $DATE
+	if [ -z "$INTERFACE" ]; then
+		echo "Error, wireless interface not set. Usage: $0 <interface>"
+		exit 1
+	fi
+	nmap_linux "$REC_DIR" "$DATE"
 fi
