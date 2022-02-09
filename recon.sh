@@ -64,11 +64,13 @@ nmap_linux ()
 		echo -e "${GREEN}Yes${ENDCOLOR}"
 		EXTERNAL_IP=$(curl --interface "$INTERFACE" -s ip.me)
 		echo -e "External IP:	${GREEN}$EXTERNAL_IP${ENDCOLOR}"
-		ONLINE="yes"
+		ONLINE=true
 	else
 		echo -e "${RED}No${ENDCOLOR}"
-		#ONLINE="no"
+		ONLINE=false
 	fi
+
+	printf '%s,%s,%s,%s,%s\n' "$MAC" "$IP" "$LOCAL_IP" "$ONLINE" "$EXTERNAL_IP" >> "$SAFE_MAC"_log.csv
 
 	nmap -e "$INTERFACE" -T4 -sV -v -F -O --open --version-light -oX "$1/${SAFE_MAC}_$2.xml" --exclude "$LOCAL_IP" "$IP"
 }
