@@ -143,8 +143,7 @@ selection ()
 
 connection()
 {
-	if (false); then
-	#if (which NetworkManager > /dev/null); then
+	if (which NetworkManager > /dev/null); then
 		echo "NetworkManager found"
 		if (nmcli d | grep "$INTERFACE" | grep unmanaged > /dev/null); then
 			printf 'Interface %s is unmanaged, using wpa_supplicant instead\n' "$INTERFACE"
