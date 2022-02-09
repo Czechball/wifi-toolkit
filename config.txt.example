@@ -1,0 +1,4 @@
+#!/bin/bash
+
+WPA420_BACKEND="https://www.example.com"
+WPA420_TOKEN="1234567890abcdef"
